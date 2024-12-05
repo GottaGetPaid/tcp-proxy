@@ -1,6 +1,7 @@
 import socket
 import threading
 import select
+import argparse
 
 def hex_dump(data, length=16):
     def char_print(byte):
@@ -67,3 +68,28 @@ class TcpProxy:
             )
             proxy_thread.daemon = True
             proxy_thread.start()
+
+def main():
+    parser = argparse.ArgumentParser(description='TCP Proxy Server')
+    parser.add_argument('--ip', default='localhost', 
+                    help='local IP address to bind to')
+    parser.add_argument('--port', type=int, default=8080,
+                    help='local port to bind to')
+    parser.add_argument('--server', required=True,
+                    help='remote server address and port')
+    
+    args = parser.parse_args()
+    
+    proxy = TcpProxy(
+        local_host=args.ip,
+        local_port=args.port,
+        remote_host=args.server.split(":")[0], # split b.c. only accept one server arg
+        remote_port=args.server.split(":")[1] 
+    )
+    
+    print(f"Starting proxy server on {proxy.local_host}:{proxy.local_port}")
+    print(f"Forwarding to {proxy.remote_host}:{proxy.remote_port}")
+    proxy.start()
+
+if __name__ == '__main__':
+    main()
