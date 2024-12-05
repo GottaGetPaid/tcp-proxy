@@ -2,6 +2,8 @@ import unittest
 import socket
 import threading
 import time
+import signal
+import logging
 from tcp_proxy import TcpProxy
 
 class TestTcpProxy(unittest.TestCase):
@@ -12,7 +14,16 @@ class TestTcpProxy(unittest.TestCase):
             remote_host="127.0.0.1",
             remote_port=9090
         )
-        
+
+    # verifies initial running state
+    def test_proxy_initialization(self):
+        self.assertEqual(self.proxy.local_host, "127.0.0.1")
+        self.assertEqual(self.proxy.local_port, 8080)
+        self.assertEqual(self.proxy.remote_host, "127.0.0.1")
+        self.assertEqual(self.proxy.remote_port, 9090)
+        self.assertTrue(hasattr(self.proxy, 'is_running'))
+        self.assertTrue(self.proxy.is_running)
+
     def test_proxy_connection(self):
         # Start mock server
         mock_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -46,12 +57,6 @@ class TestTcpProxy(unittest.TestCase):
         client.close()
         server_conn.close()
         mock_server.close()
-
-    def test_proxy_initialization(self):
-        self.assertEqual(self.proxy.local_host, "127.0.0.1")
-        self.assertEqual(self.proxy.local_port, 8080)
-        self.assertEqual(self.proxy.remote_host, "127.0.0.1")
-        self.assertEqual(self.proxy.remote_port, 9090)
 
 if __name__ == "__main__":
     proxy = TcpProxy(
