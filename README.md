@@ -45,3 +45,16 @@ If I had more time to work on this project though, I would:
 
 Thanks for giving me the opportunity to learn more about networking and considering me for your internship position!
 
+### 3. Instructions + Additional 
+#### Instructions for running
+1. Have python3 installed. 
+2. Same as given instructions. i.e. 
+   To run `tcp_proxy.py`: `python3 tcpproxy.py --ip 127.0.0.1 --port 5555 --server "192.168.5.2:80"` from the project root folder.
+   To run `test_tcp_proxy.py`: `python3 test_tcp_proxy.py`.
+#### Citations
+See `citation.md`
+
+#### Light Links
+This project was made for [Light Links Inc.](https://www.linkedin.com/company/lightlinks-inc/)'s software intern assessment. Instructions can be found in `assessment.pdf`.
+
+
