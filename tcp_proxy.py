@@ -2,6 +2,12 @@ import socket
 import threading
 import select
 import argparse
+import signal
+import sys
+import logging
+
+# enables error messages to print to console
+logging.basicConfig(level=logging.INFO) 
 
 def hex_dump(data, length=16):
     def char_print(byte):
@@ -25,12 +31,22 @@ class TcpProxy:
         self.remote_host = remote_host
         self.remote_port = remote_port
         self.buffer_size = 4096
+        self.server = None
+        self.is_running = True
+
+    def signal_handler(self, signum, frame):
+        signal_name = signal.Signals(signum).name
+        logging.info(f"\nReceived signal {signal_name}. Gracefully shutting down...")
+        self.is_running = False
+        if self.server:
+            self.server.close()
+        sys.exit(0)
 
     def handle_client(self, client_socket):
         remote_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         remote_socket.connect((self.remote_host, self.remote_port))
 
-        while True:
+        while self.is_running:
             try:
                 readable, _, _ = select.select([client_socket, remote_socket], [], [])
                 
@@ -48,26 +64,34 @@ class TcpProxy:
                     else:
                         client_socket.send(data)
             except Exception as e:
-                print(f"Error: {e}")
+                logging.error(f"Error: {e}")
                 break
 
         client_socket.close()
         remote_socket.close()
 
     def start(self):
-        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server.bind((self.local_host, self.local_port))
-        server.listen(5)
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.server.bind((self.local_host, self.local_port))
+        self.server.listen(5)
+
+        # Register signal handlers
+        signal.signal(signal.SIGINT, self.signal_handler) # CTRL-C interruption
+        signal.signal(signal.SIGTERM, self.signal_handler) # "kill"/polite interruption
 
         while True:
-            client_socket, _ = server.accept()
-            proxy_thread = threading.Thread(
-                target=self.handle_client,
-                args=(client_socket,)
-            )
-            proxy_thread.daemon = True
-            proxy_thread.start()
+            try:
+                client_socket, _ = self.server.accept()
+                proxy_thread = threading.Thread(
+                    target=self.handle_client,
+                    args=(client_socket,)
+                )
+                proxy_thread.daemon = True
+                proxy_thread.start()
+            except socket.error:
+                if self.is_running:
+                    logging.error("Socket error occurred")
 
 def main():
     parser = argparse.ArgumentParser(description='TCP Proxy Server')
