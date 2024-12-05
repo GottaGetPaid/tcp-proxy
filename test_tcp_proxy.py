@@ -58,6 +58,28 @@ class TestTcpProxy(unittest.TestCase):
         server_conn.close()
         mock_server.close()
 
+    def test_signal_handling(self):
+        # Start proxy in background
+        proxy_thread = threading.Thread(target=self.proxy.start)
+        proxy_thread.daemon = True
+        proxy_thread.start()
+        
+        # Give proxy time to start
+        time.sleep(0.1)
+        
+        # Test SIGTERM handling
+        self.proxy.signal_handler(signal.SIGTERM, None)
+        self.assertFalse(self.proxy.is_running)
+        
+        # Verify server socket is closed
+        self.assertIsNotNone(self.proxy.server)
+        
+        # Try to connect - should fail if server is properly closed
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        with self.assertRaises(ConnectionRefusedError):
+            client.connect(("127.0.0.1", 8080))
+        client.close()
+
 if __name__ == "__main__":
     proxy = TcpProxy(
         local_host="localhost",
