@@ -26,11 +26,22 @@ Now that I have a rough idea of what a TCP proxy is, I need to actually build on
 
 I found an article online on how to build a TCP proxy in python: https://thepythoncode.com/article/building-a-tcp-proxy-with-python#implementation, read through its explanations, and the code. 
 
-I'm unfamiliar with the python standard libraries, so I watched this helpful tutorial: https://youtu.be/3QiPPX-KeSc?si=BRabx8Pf4wc9MOlj
+I'm unfamiliar with the python standard libraries for networking, so I watched this helpful tutorial: https://youtu.be/3QiPPX-KeSc?si=BRabx8Pf4wc9MOlj. And also watched this short video which helped clear up what network sockets are for me: https://youtu.be/_FVvlJDQTxk?si=As96U5tOPdnifpj_ (I also realized sockets not the same as WebSockets 😅).
 
-Then with lots of help from Perplexity, I made the basic structure for my TCP proxy and a testing suite for it.
+Then I made the basic structure for my TCP proxy and a testing suite for it with Perplexity.
 
-Unfortunately, I this is as far as I'm getting. I was caught up by a few other projects and a final tomorrow so I didn't have much time to spend on the TCP proxy :p. If I had more time to work on this project though, I would test to make sure it works with different services like FTP, and also try making something to automatically detect the optimal buffer size to use, rather than a constant value.
+To add the CLI functionality, I made a main program for the TCP proxy file as well. To add signal handling, I used python's signal, sys, and logging libraries.
+
+After all that, I updated the test file to reflect changes made to the proxy.
+
+Unfortunately, I this is as far as I'm getting 🥲. I was caught up by a few other projects and a final tomorrow so I didn't have much time to spend on the TCP proxy :p. 
+
+If I had more time to work on this project though, I would: 
+* Make sure I understand all the code, a lot was generated.
+* Make the test suite more thorough.
+* Test to make sure it works across different operating systems (although python should work everywhere).
+* Try making something to automatically detect the optimal buffer size to use, rather than a constant value.
+* Check if the proxy works with API calls.
 
 Thanks for giving me the opportunity to learn more about networking and considering me for your internship position!
 
