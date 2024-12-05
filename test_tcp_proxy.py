@@ -3,7 +3,6 @@ import socket
 import threading
 import time
 import signal
-import logging
 from tcp_proxy import TcpProxy
 
 class TestTcpProxy(unittest.TestCase):
@@ -81,11 +80,5 @@ class TestTcpProxy(unittest.TestCase):
         client.close()
 
 if __name__ == "__main__":
-    proxy = TcpProxy(
-        local_host="localhost",
-        local_port=8080,
-        remote_host="google.com",
-        remote_port=80
-    )
-    proxy.start()
+    unittest.main()
 
