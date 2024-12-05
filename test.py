@@ -46,7 +46,7 @@ class TestTcpProxy(unittest.TestCase):
                 except Exception:
                     break
         
-        # Start proxy in background
+        # Start proxy in background using run_proxy instead of self.proxy.start
         proxy_thread = threading.Thread(target=run_proxy)
         proxy_thread.daemon = True
         proxy_thread.start()
