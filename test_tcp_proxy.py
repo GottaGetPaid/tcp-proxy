@@ -29,6 +29,23 @@ class TestTcpProxy(unittest.TestCase):
         mock_server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         mock_server.bind(("127.0.0.1", 9090))
         mock_server.listen(1)
+
+        # Create an event to control the proxy thread
+        stop_event = threading.Event()
+
+        def run_proxy():
+            while not stop_event.is_set():
+                try:
+                    # Start proxy without signal handling
+                    self.proxy.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    self.proxy.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                    self.proxy.server.bind((self.proxy.local_host, self.proxy.local_port))
+                    self.proxy.server.listen(5)
+                    
+                    client_socket, _ = self.proxy.server.accept()
+                    self.proxy.handle_client(client_socket)
+                except Exception:
+                    break
         
         # Start proxy in background
         proxy_thread = threading.Thread(target=self.proxy.start)
@@ -38,24 +55,28 @@ class TestTcpProxy(unittest.TestCase):
         # Give proxy time to start
         time.sleep(0.1)
         
-        # Create client connection
-        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client.connect(("127.0.0.1", 8080))
+        try:
+            # Create client connection
+            client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            client.connect(("127.0.0.1", 8080))
         
-        # Accept connection on mock server
-        server_conn, _ = mock_server.accept()
-        
-        # Test data transfer
-        test_data = b"Hello, World!"
-        client.send(test_data)
-        received = server_conn.recv(1024)
-        
-        self.assertEqual(test_data, received)
-        
-        # Cleanup
-        client.close()
-        server_conn.close()
-        mock_server.close()
+            # Accept connection on mock server
+            server_conn, _ = mock_server.accept()
+            
+            # Test data transfer
+            test_data = b"Hello, World!"
+            client.send(test_data)
+            received = server_conn.recv(1024)
+            
+            self.assertEqual(test_data, received)
+        finally:
+            # Cleanup
+            stop_event.set()
+            client.close()
+            server_conn.close()
+            mock_server.close()
+            if self.proxy.server:
+                self.proxy.server.close()
 
     def test_signal_handling(self):
         # Start proxy in background
